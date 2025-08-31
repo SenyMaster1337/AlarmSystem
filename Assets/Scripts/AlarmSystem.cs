@@ -1,14 +1,28 @@
+using System;
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(AudioSource))]
 public class AlarmSystem : MonoBehaviour
 {
+    [SerializeField] private House _house;
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _minVolume;
     [SerializeField] private float _maxValume;
     [SerializeField] private float _changeVolume;
 
     private bool _isAlarmActivated = false;
+
+    private void OnEnable()
+    {
+        _house.HouseEntered += ActiveateAlarm;
+        _house.HouseLefted += DisableAlarm;
+    }
+
+    private void OnDisable()
+    {
+        _house.HouseEntered -= ActiveateAlarm;
+        _house.HouseLefted -= DisableAlarm;
+    }
 
     private void Awake()
     {
@@ -28,20 +42,14 @@ public class AlarmSystem : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider collider)
+    private void ActiveateAlarm()
     {
-        if (collider.gameObject.TryGetComponent(out Crook human))
-        {
-            _isAlarmActivated = true;
-            _audioSource.Play();
-        }
+        _isAlarmActivated = true;
+        _audioSource.Play();
     }
 
-    private void OnTriggerExit(Collider collider)
+    private void DisableAlarm()
     {
-        if (collider.gameObject.TryGetComponent(out Crook human))
-        {
-            _isAlarmActivated = false;
-        }
+        _isAlarmActivated = false;
     }
 }
