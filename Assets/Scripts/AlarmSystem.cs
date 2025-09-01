@@ -1,27 +1,23 @@
-using System;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(AudioSource))]
 public class AlarmSystem : MonoBehaviour
 {
-    [SerializeField] private House _house;
     [SerializeField] private AudioSource _audioSource;
     [SerializeField] private float _minVolume;
-    [SerializeField] private float _maxValume;
+    [SerializeField] private float _maxVolume;
     [SerializeField] private float _changeVolume;
 
-    private bool _isAlarmActivated = false;
+    private Trigger _trigger;
+    private Coroutine _coroutine;
 
-    private void OnEnable()
+    public void Init(Trigger trigger)
     {
-        _house.HouseEntered += ActiveateAlarm;
-        _house.HouseLefted += DisableAlarm;
-    }
+        _trigger = trigger;
 
-    private void OnDisable()
-    {
-        _house.HouseEntered -= ActiveateAlarm;
-        _house.HouseLefted -= DisableAlarm;
+        _trigger.Entered += ActiveateAlarm;
+        _trigger.Lefted += DisableAlarm;
     }
 
     private void Awake()
@@ -30,26 +26,49 @@ public class AlarmSystem : MonoBehaviour
         _audioSource.volume = _minVolume;
     }
 
-    private void Update()
+    private void OnDisable()
     {
-        if (_isAlarmActivated == true && _audioSource.volume != _maxValume)
+        _trigger.Entered -= ActiveateAlarm;
+        _trigger.Lefted -= DisableAlarm;
+    }
+
+    private void StartVolumeCount(float targetVolume)
+    {
+        if (_coroutine != null)
+            StopCoroutine(_coroutine);
+
+        _coroutine = StartCoroutine(CountVolumeChange(targetVolume));
+    }
+
+    private IEnumerator CountVolumeChange(float targetVolume)
+    {
+        var wait = new WaitForSeconds(0.05f);
+
+        while (_audioSource.volume != targetVolume)
         {
-            _audioSource.volume += Mathf.MoveTowards(_minVolume, _maxValume, _changeVolume);
+            VolumeChange(targetVolume);
+            yield return wait;
         }
-        else if (_audioSource.volume != _minVolume)
+
+        if (_audioSource.volume == _minVolume)
         {
-            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, _minVolume, _changeVolume);
+            _audioSource.Stop();
         }
     }
 
+    private void VolumeChange(float targetVolume)
+    {
+        _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _changeVolume);
+    }
+ 
     private void ActiveateAlarm()
     {
-        _isAlarmActivated = true;
         _audioSource.Play();
+        StartVolumeCount(_maxVolume);
     }
 
     private void DisableAlarm()
     {
-        _isAlarmActivated = false;
+        StartVolumeCount(_minVolume);
     }
 }

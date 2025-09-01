@@ -1,25 +1,12 @@
-using System;
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider))]
 public class House : MonoBehaviour
 {
-    public event Action HouseEntered;
-    public event Action HouseLefted;
+    [SerializeField] private Trigger _trigger;
+    [SerializeField] private AlarmSystem _alarmSystem;
 
-    private void OnTriggerEnter(Collider collider)
+    private void Awake()
     {
-        if (collider.gameObject.TryGetComponent(out Crook human))
-        {
-            HouseEntered?.Invoke();
-        }
-    }
-
-    private void OnTriggerExit(Collider collider)
-    {
-        if (collider.gameObject.TryGetComponent(out Crook human))
-        {
-            HouseLefted?.Invoke();
-        }
+        _alarmSystem.Init(_trigger);
     }
 }
