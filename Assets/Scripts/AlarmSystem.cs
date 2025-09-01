@@ -9,6 +9,7 @@ public class AlarmSystem : MonoBehaviour
     [SerializeField] private float _maxVolume;
     [SerializeField] private float _changeVolume;
 
+    private float _delay = 0.05f;
     private Trigger _trigger;
     private Coroutine _coroutine;
 
@@ -42,7 +43,7 @@ public class AlarmSystem : MonoBehaviour
 
     private IEnumerator CountVolumeChange(float targetVolume)
     {
-        var wait = new WaitForSeconds(0.05f);
+        var wait = new WaitForSeconds(_delay);
 
         while (_audioSource.volume != targetVolume)
         {
